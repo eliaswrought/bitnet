@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bitnet — A Decentralized Bandwidth Market on Lightning</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg2: #161b22;
+    --bg3: #1c2128;
+    --text: #e6edf3;
+    --text-dim: #8b949e;
+    --orange: #f7931a;
+    --orange-dim: rgba(247, 147, 26, 0.15);
+    --green: #3fb950;
+    --red: #f85149;
+    --blue: #58a6ff;
+    --border: #30363d;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 17px;
+  }
+
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(13, 17, 23, 0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0.8rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    overflow-x: auto;
+  }
+
+  nav .logo {
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: var(--orange);
+    white-space: nowrap;
+    letter-spacing: -0.02em;
+  }
+
+  nav a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    transition: color 0.2s;
+  }
+
+  nav a:hover { color: var(--text); }
+
+  section {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 5rem 2rem;
+  }
+
+  h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+  }
+
+  h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 1rem;
+    color: var(--orange);
+  }
+
+  h3 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    margin-top: 2rem;
+  }
+
+  p { margin-bottom: 1.2rem; }
+
+  .hero {
+    text-align: center;
+    padding: 8rem 2rem 5rem;
+  }
+
+  .hero h1 { font-size: 3.5rem; }
+
+  .hero .subtitle {
+    font-size: 1.3rem;
+    color: var(--text-dim);
+    max-width: 600px;
+    margin: 0 auto 2rem;
+  }
+
+  .pattern-row {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin: 3rem 0;
+  }
+
+  .pattern-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    width: 240px;
+    text-align: center;
+  }
+
+  .pattern-card.active {
+    border-color: var(--orange);
+    background: var(--orange-dim);
+  }
+
+  .pattern-card .layer {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    margin-bottom: 0.5rem;
+  }
+
+  .pattern-card .service {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+
+  .pattern-card .reward {
+    color: var(--orange);
+    font-size: 0.95rem;
+  }
+
+  .diagram-container {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 2rem 0;
+    overflow-x: auto;
+  }
+
+  .diagram-container svg {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    height: auto;
+  }
+
+  .diagram-label {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    margin-top: 1rem;
+    font-style: italic;
+  }
+
+  code {
+    background: var(--bg3);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  }
+
+  pre {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    font-size: 0.95rem;
+  }
+
+  th {
+    text-align: left;
+    padding: 0.75rem 1rem;
+    border-bottom: 2px solid var(--border);
+    color: var(--orange);
+    font-weight: 600;
+  }
+
+  td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  .check { color: var(--green); }
+  .cross { color: var(--red); }
+  .warn { color: #d29922; }
+
+  .flywheel-container {
+    display: flex;
+    justify-content: center;
+    margin: 2rem 0;
+  }
+
+  ul {
+    margin: 1rem 0 1.5rem 1.5rem;
+  }
+
+  li { margin-bottom: 0.5rem; }
+
+  .callout {
+    background: var(--orange-dim);
+    border-left: 3px solid var(--orange);
+    padding: 1.25rem 1.5rem;
+    border-radius: 0 8px 8px 0;
+    margin: 2rem 0;
+  }
+
+  .callout p:last-child { margin-bottom: 0; }
+
+  .roadmap-item {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    align-items: flex-start;
+  }
+
+  .roadmap-phase {
+    background: var(--orange);
+    color: var(--bg);
+    font-weight: 700;
+    font-size: 0.8rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    white-space: nowrap;
+    margin-top: 0.2rem;
+  }
+
+  .separator {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 0;
+  }
+
+  footer {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    border-top: 1px solid var(--border);
+  }
+
+  @media (max-width: 600px) {
+    .hero h1 { font-size: 2.2rem; }
+    h2 { font-size: 1.5rem; }
+    section { padding: 3rem 1.25rem; }
+    nav { padding: 0.6rem 1rem; gap: 1rem; }
+    .pattern-card { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">⚡ bitnet</div>
+  <a href="#thesis">Thesis</a>
+  <a href="#how-it-works">How It Works</a>
+  <a href="#protocol">Protocol</a>
+  <a href="#infrastructure">Infrastructure</a>
+  <a href="#flywheel">Growth</a>
+  <a href="#use-cases">Use Cases</a>
+  <a href="#landscape">Landscape</a>
+  <a href="#architecture">Architecture</a>
+  <a href="#legal">Legal</a>
+  <a href="#roadmap">Roadmap</a>
+</nav>
+
+<!-- ==================== HERO ==================== -->
+<section class="hero">
+  <h1>bitnet</h1>
+  <p class="subtitle">A decentralized bandwidth market on Lightning.<br>Provide bandwidth, earn bitcoin. Need bandwidth, pay sats.</p>
+
+  <div class="pattern-row">
+    <div class="pattern-card">
+      <div class="layer">Layer 1</div>
+      <div class="service">Provide Hashpower</div>
+      <div class="reward">→ Earn Bitcoin</div>
+    </div>
+    <div class="pattern-card">
+      <div class="layer">Layer 2</div>
+      <div class="service">Provide Liquidity</div>
+      <div class="reward">→ Earn Routing Fees</div>
+    </div>
+    <div class="pattern-card active">
+      <div class="layer">Layer 3</div>
+      <div class="service">Provide Bandwidth</div>
+      <div class="reward">→ Earn Relay Fees</div>
+    </div>
+  </div>
+</section>
+
+<hr class="separator">
+
+<!-- ==================== THESIS ==================== -->
+<section id="thesis">
+  <h2>the thesis</h2>
+
+  <p>Bitcoin created the first decentralized market: miners provide hashpower to secure the chain and receive bitcoin in return. No coordination required. No business development. Pure incentive drove it from one node to a global network.</p>
+
+  <p>Lightning created the second: node operators provide liquidity and routing capacity, earning fees on every payment they forward. Again — permissionless participation, organic growth through economic incentive.</p>
+
+  <p>Both markets share five critical properties:</p>
+
+  <ul>
+    <li><strong>Discrete</strong> — one unit of work, one unit of payment</li>
+    <li><strong>Simple</strong> — the protocol defines everything, no negotiation</li>
+    <li><strong>Instantly verifiable</strong> — proof of work is binary, routing either succeeds or fails</li>
+    <li><strong>Permissionless</strong> — anyone can start participating today</li>
+    <li><strong>Self-reinforcing</strong> — more participants = better network = more participants</li>
+  </ul>
+
+  <p>Bitnet applies this exact pattern to the most fundamental internet service: <strong>moving data from point A to point B</strong>.</p>
+
+  <div class="callout">
+    <p><strong>The core claim:</strong> A decentralized market for bandwidth relay, settled in bitcoin over lightning, can grow organically on incentives alone — just as mining and routing did. No token. No foundation. No fundraise. Just software that makes it profitable to relay traffic.</p>
+  </div>
+
+  <p>Every other internet service — storage, compute, VPN, CDN — depends on data transport. Bandwidth relay is the primitive. Build this market first, and the others can layer on top.</p>
+</section>
+
+<hr class="separator">
+
+<!-- ==================== HOW IT WORKS ==================== -->
+<section id="how-it-works">
+  <h2>how it works</h2>
+
+  <p>A lightweight daemon called <code>bitnetd</code> runs alongside any Lightning node. It does two things: accepts incoming proxy requests, and charges sats to fulfill them.</p>
+
+  <h3>Request Lifecycle</h3>
+
+  <div class="diagram-container">
+    <svg viewBox="0 0 800 420" xmlns="http://www.w3.org/2000/svg">
+      <!-- Actors -->
+      <rect x="60" y="20" width="120" height="40" rx="8" fill="#1c2128" stroke="#f7931a" stroke-width="2"/>
+      <text x="120" y="45" text-anchor="middle" fill="#e6edf3" font-size="14" font-weight="600" font-family="system-ui">Client</text>
+
+      <rect x="340" y="20" width="120" height="40" rx="8" fill="#1c2128" stroke="#f7931a" stroke-width="2"/>
+      <text x="400" y="45" text-anchor="middle" fill="#e6edf3" font-size="14" font-weight="600" font-family="system-ui">Bitnet Node</text>
+
+      <rect x="620" y="20" width="120" height="40" rx="8" fill="#1c2128" stroke="#30363d" stroke-width="2"/>
+      <text x="680" y="45" text-anchor="middle" fill="#8b949e" font-size="14" font-weight="600" font-family="system-ui">Destination</text>
+
+      <!-- Lifelines -->
+      <line x1="120" y1="60" x2="120" y2="400" stroke="#30363d" stroke-width="1" stroke-dasharray="4,4"/>
+      <line x1="400" y1="60" x2="400" y2="400" stroke="#30363d" stroke-width="1" stroke-dasharray="4,4"/>
+      <line x1="680" y1="60" x2="680" y2="400" stroke="#30363d" stroke-width="1" stroke-dasharray="4,4"/>
+
+      <!-- Step 1 -->
+      <line x1="120" y1="100" x2="400" y2="100" stroke="#58a6ff" stroke-width="2" marker-end="url(#arrow-blue)"/>
+      <text x="260" y="92" text-anchor="middle" fill="#58a6ff" font-size="12" font-family="system-ui">1. Proxy request (SOCKS5/HTTP)</text>
+
+      <!-- Step 2 -->
+      <line x1="400" y1="150" x2="120" y2="150" stroke="#f7931a" stroke-width="2" marker-end="url(#arrow-orange)"/>
+      <text x="260" y="142" text-anchor="middle" fill="#f7931a" font-size="12" font-family="system-ui">2. L402 challenge + Lightning invoice</text>
+
+      <!-- Step 3 -->
+      <line x1="120" y1="200" x2="400" y2="200" stroke="#3fb950" stroke-width="2" marker-end="url(#arrow-green)"/>
+      <text x="260" y="192" text-anchor="middle" fill="#3fb950" font-size="12" font-family="system-ui">3. Payment (HTLC settles)</text>
+
+      <!-- Step 4 -->
+      <line x1="400" y1="250" x2="680" y2="250" stroke="#58a6ff" stroke-width="2" marker-end="url(#arrow-blue)"/>
+      <text x="540" y="242" text-anchor="middle" fill="#58a6ff" font-size="12" font-family="system-ui">4. Relay request</text>
+
+      <!-- Step 5 -->
+      <line x1="680" y1="300" x2="400" y2="300" stroke="#8b949e" stroke-width="2" marker-end="url(#arrow-gray)"/>
+      <text x="540" y="292" text-anchor="middle" fill="#8b949e" font-size="12" font-family="system-ui">5. Response data</text>
+
+      <!-- Step 6 -->
+      <line x1="400" y1="350" x2="120" y2="350" stroke="#8b949e" stroke-width="2" marker-end="url(#arrow-gray)"/>
+      <text x="260" y="342" text-anchor="middle" fill="#8b949e" font-size="12" font-family="system-ui">6. Relay response to client</text>
+
+      <!-- Arrow markers -->
+      <defs>
+        <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#58a6ff"/></marker>
+        <marker id="arrow-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f7931a"/></marker>
+        <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3fb950"/></marker>
+        <marker id="arrow-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#8b949e"/></marker>
+      </defs>
+    </svg>
+    <div class="diagram-label">Fig 1. Single-node request lifecycle — payment is atomic via Lightning HTLC</div>
+  </div>
+
+  <p>The critical property: <strong>payment and delivery are atomic</strong>. The client pays via a Lightning HTLC (Hash Time-Locked Contract). The node only claims payment after delivering the response. If relay fails, the payment reverts. No trust required.</p>
+
+  <h3>Multi-Hop Relay</h3>
+
+  <p>For privacy, requests can be routed through multiple bitnet nodes using onion routing — the same technique Lightning itself uses for payment routing. Each node only knows the previous hop and the next hop. Nobody sees the full path.</p>
+
+  <div class="diagram-container">
+    <svg viewBox="0 0 800 280" xmlns="http://www.w3.org/2000/svg">
+      <!-- Client -->
+      <rect x="20" y="100" width="100" height="60" rx="10" fill="#1c2128" stroke="#f7931a" stroke-width="2"/>
+      <text x="70" y="125" text-anchor="middle" fill="#e6edf3" font-size="13" font-weight="600" font-family="system-ui">Client</text>
+      <text x="70" y="145" text-anchor="middle" fill="#8b949e" font-size="10" font-family="system-ui">bitnet-cli</text>
+
+      <!-- Node 1 -->
+      <rect x="195" y="100" width="100" height="60" rx="10" fill="#1c2128" stroke="#f7931a" stroke-width="2"/>
+      <text x="245" y="120" text-anchor="middle" fill="#e6edf3" font-size="13" font-weight="600" font-family="system-ui">Node A</text>
+      <text x="245" y="137" text-anchor="middle" fill="#8b949e" font-size="10" font-family="system-ui">Entry relay</text>
+      <text x="245" y="152" text-anchor="middle" fill="#3fb950" font-size="10" font-family="system-ui">earns 5 sats</text>
+
+      <!-- Node 2 -->
+      <rect x="370" y="100" width="100" height="60" rx="10" fill="#1c2128" stroke="#f7931a" stroke-width="2"/>
+      <text x="420" y="120" text-anchor="middle" fill="#e6edf3" font-size="13" font-weight="600" font-family="system-ui">Node B</text>
+      <text x="420" y="137" text-anchor="middle" fill="#8b949e" font-size="10" font-family="system-ui">Middle relay</text>
+      <text x="420" y="152" text-anchor="middle" fill="#3fb950" font-size="10" font-family="system-ui">earns 5 sats</text>
+
+      <!-- Node 3 -->
+      <rect x="545" y="100" width="100" height="60" rx="10" fill="#1c2128" stroke="#f7931a" stroke-width="2"/>
+      <text x="595" y="120" text-anchor="middle" fill="#e6edf3" font-size="13" font-weight="600" font-family="system-ui">Node C</text>
+      <text x="595" y="137" text-anchor="middle" fill="#8b949e" font-size="10" font-family="system-ui">Exit relay</text>
+      <text x="595" y="152" text-anchor="middle" fill="#3fb950" font-size="10" font-family="system-ui">earns 10 sats</text>
+
+      <!-- Destination -->
+      <rect x="720" y="100" width="70" height="60" rx="10" fill="#1c2128" stroke="#30363d" stroke-width="2"/>
+      <text x="755" y="135" text-anchor="middle" fill="#8b949e" font-size="12" font-weight="600" font-family="system-ui">Web</text>
+
+      <!-- Arrows -->
+      <line x1="120" y1="130" x2="195" y2="130" stroke="#f7931a" stroke-width="2" marker-end="url(#arrow-orange)"/>
+      <line x1="295" y1="130" x2="370" y2="130" stroke="#f7931a" stroke-width="2" marker-end="url(#arrow-orange)"/>
+      <line x1="470" y1="130" x2="545" y2="130" stroke="#f7931a" stroke-width="2" marker-end="url(#arrow-orange)"/>
+      <line x1="645" y1="130" x2="720" y2="130" stroke="#58a6ff" stroke-width="2" marker-end="url(#arrow-blue)"/>
+
+      <!-- Encryption layers -->
+      <rect x="130" y="195" width="510" height="35" rx="6" fill="none" stroke="#f7931a" stroke-width="1" stroke-dasharray="4,4"/>
+      <text x="385" y="217" text-anchor="middle" fill="#f7931a" font-size="11" font-family="system-ui">Onion-encrypted: each node peels one layer, sees only next hop</text>
+
+      <!-- Payment -->
+      <rect x="130" y="40" width="510" height="35" rx="6" fill="none" stroke="#3fb950" stroke-width="1" stroke-dasharray="4,4"/>
+      <text x="385" y="62" text-anchor="middle" fill="#3fb950" font-size="11" font-family="system-ui">Client pays 20 sats total — split across relay nodes via chained HTLCs</text>
+    </svg>
+    <div class="diagram-label">Fig 2. Multi-hop onion relay — each node earns fees, none sees the full path</div>
+  </div>
+
+  <p>The payment splits across all relay nodes in the path, just as Lightning routing fees split across routing nodes. Exit nodes charge more (they take the legal exposure of touching the public internet). Entry and middle nodes charge less.</p>
+</section>
+
+<hr class="separator">
+
+<!-- ==================== PROTOCOL ==================== -->
+<section id="protocol">
+  <h2>the protocol</h2>
+
+  <h3>L402: Lightning HTTP 402</h3>
+
+  <p>Bitnet uses <a href="https://docs.lightning.engineering/the-lightning-network/l402" style="color: var(--orange);">L402</a> (formerly LSAT) — a protocol developed by Lightning Labs that combines macaroons (bearer authentication tokens) with Lightning invoices. When a client requests relay service without a valid token, the node responds with HTTP 402 Payment Required, including a macaroon and a Lightning invoice.</p>
+
+  <pre>
+HTTP/1.1 402 Payment Required
+WWW-Authenticate: L402 macaroon="AGIAJEem...", invoice="lnbc200n1p..."
+
+# Client pays the invoice, obtains preimage
+# Presents macaroon + preimage as valid L402 token
+# Node verifies cryptographically — no database lookup needed
+
+Authorization: L402 AGIAJEem...:preimage=79852a07...</pre>
+
+  <p>Key properties of L402 for bitnet:</p>
+
+  <ul>
+    <li><strong>Stateless verification</strong> — any node can verify a token with just the root key. No central database of users or invoices.</li>
+    <li><strong>Metered access</strong> — macaroons can encode caveats: bytes remaining, expiry time, allowed services. A token might grant 10 MB of relay or 30 minutes of access.</li>
+    <li><strong>Delegatable</strong> — tokens can be attenuated (restricted further) and passed to others. A client could buy a large relay allocation and subdivide it.</li>
+    <li><strong>No identity</strong> — L402 tokens prove payment, not identity. No email, no account, no registration.</li>
+  </ul>
+
+  <h3>Metering Models</h3>
+
+  <table>
+    <tr><th>Model</th><th>How It Works</th><th>Best For</th></tr>
+    <tr><td><strong>Per-request</strong></td><td>Fixed fee per HTTP request relayed</td><td>API proxying, simple browsing</td></tr>
+    <tr><td><strong>Per-byte</strong></td><td>Fee proportional to data transferred</td><td>File downloads, streaming</td></tr>
+    <tr><td><strong>Per-window</strong></td><td>Fixed fee for a time window (e.g., 10 min)</td><td>General browsing sessions</td></tr>
+  </table>
+
+  <p>Nodes advertise their pricing. Clients choose nodes based on price, latency, and location. The market sets the rate.</p>
+
+  <h3>Node Discovery</h3>
+
+  <p>Bitnet nodes announce their presence and capabilities through the existing Lightning gossip protocol. Each node publishes:</p>
+
+  <ul>
+    <li><strong>Relay capacity</strong> — available bandwidth (Mbps)</li>
+    <li><strong>Pricing</strong> — sats per MB, per request, or per time window</li>
+    <li><strong>Location</strong> — approximate geographic region (opt-in)</li>
+    <li><strong>Services</strong> — HTTP proxy, SOCKS5, TCP relay, exit node (opt-in)</li>
+    <li><strong>Uptime history</strong> — rolling average availability</li>
+  </ul>
+
+  <p>Clients maintain a local view of available relay nodes and select paths based on their requirements (cheapest, fastest, most geographically diverse, etc.).</p>
+</section>
+
+<hr class="separator">
+
+<!-- ==================== INFRASTRUCTURE ==================== -->
+<section id="infrastructure">
+  <h2>why lightning nodes are day-one infrastructure</h2>
+
+  <p>The cold start problem kills most decentralized networks. Bitnet doesn't have one.</p>
+
+  <p>There are approximately <strong>15,000 Lightning nodes</strong> running globally right now. Every single one of them already has:</p>
+
+  <ul>
+    <li><strong>A public IP address</strong> — they're reachable from the internet</li>
+    <li><strong>Spare bandwidth</strong> — Lightning payments are tiny; most node bandwidth is idle</li>
+    <li><strong>A Lightning wallet</strong> — ready to generate invoices and receive payments</li>
+    <li><strong>24/7 uptime</strong> — nodes must stay online to route payments and monitor channels</li>
+    <li><strong>Existing connectivity</strong> — channels already open to other nodes worldwide</li>
+  </ul>
+
+  <div class="diagram-container">
+    <svg viewBox="0 0 800 300" xmlns="http://www.w3.org/2000/svg">
+      <!-- Before -->
+      <text x="200" y="30" text-anchor="middle" fill="#8b949e" font-size="14" font-weight="600" font-family="system-ui">LIGHTNING NODE (before)</text>
+      <rect x="80" y="50" width="240" height="200" rx="12" fill="#1c2128" stroke="#30363d" stroke-width="2"/>
+      <text x="200" y="85" text-anchor="middle" fill="#e6edf3" font-size="13" font-weight="600" font-family="system-ui">lnd / cln</text>
+      <rect x="110" y="100" width="180" height="30" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+      <text x="200" y="120" text-anchor="middle" fill="#8b949e" font-size="11" font-family="system-ui">Payment Routing</text>
+      <rect x="110" y="140" width="180" height="30" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+      <text x="200" y="160" text-anchor="middle" fill="#8b949e" font-size="11" font-family="system-ui">Channel Management</text>
+      <rect x="110" y="180" width="180" height="30" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1" stroke-dasharray="4,4"/>
+      <text x="200" y="200" text-anchor="middle" fill="#30363d" font-size="11" font-family="system-ui">Idle Bandwidth (~95%)</text>
+
+      <!-- Arrow -->
+      <text x="400" y="155" text-anchor="middle" fill="#f7931a" font-size="28" font-family="system-ui">→</text>
+
+      <!-- After -->
+      <text x="600" y="30" text-anchor="middle" fill="#f7931a" font-size="14" font-weight="600" font-family="system-ui">LIGHTNING + BITNET NODE (after)</text>
+      <rect x="480" y="50" width="240" height="200" rx="12" fill="#1c2128" stroke="#f7931a" stroke-width="2"/>
+      <text x="600" y="85" text-anchor="middle" fill="#e6edf3" font-size="13" font-weight="600" font-family="system-ui">lnd / cln + bitnetd</text>
+      <rect x="510" y="100" width="180" height="30" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+      <text x="600" y="120" text-anchor="middle" fill="#8b949e" font-size="11" font-family="system-ui">Payment Routing</text>
+      <rect x="510" y="140" width="180" height="30" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+      <text x="600" y="160" text-anchor="middle" fill="#8b949e" font-size="11" font-family="system-ui">Channel Management</text>
+      <rect x="510" y="180" width="180" height="30" rx="6" fill="rgba(247,147,26,0.15)" stroke="#f7931a" stroke-width="1"/>
+      <text x="600" y="200" text-anchor="middle" fill="#f7931a" font-size="11" font-weight="600" font-family="system-ui">⚡ Bandwidth Relay → Earn Sats</text>
+    </svg>
+    <div class="diagram-label">Fig 3. A Lightning node already has everything bitnet needs — just activate the idle bandwidth</div>
+  </div>
+
+  <div class="callout">
+    <p><strong>The installation pitch:</strong> You already run a Lightning node. Install one binary. Earn sats from your spare bandwidth. Takes 5 minutes.</p>
+  </div>
+
+  <p>This is not "build a new network from scratch." This is "turn on a feature on a network that already exists." Day one, bitnet has access to thousands of globally distributed, always-on, payment-ready nodes. No other decentralized bandwidth project can claim this.</p>
+</section>
+
+<hr class="separator">
+
+<!-- ==================== FLYWHEEL ==================== -->
+<section id="flywheel">
+  <h2>the organic growth flywheel</h2>
+
+  <p>The growth mechanism mirrors mining and routing exactly: economic incentive drives participation, participation improves the network, network improvement attracts users, users generate revenue, revenue attracts more participants.</p>
+
+  <div class="diagram-container">
+    <svg viewBox="0 0 600 500" xmlns="http://www.w3.org/2000/svg">
+      <!-- Center label -->
+      <text x="300" y="250" text-anchor="middle" fill="#f7931a" font-size="16" font-weight="700" font-family="system-ui">BITNET</text>
+      <text x="300" y="270" text-anchor="middle" fill="#f7931a" font-size="11" font-family="system-ui">FLYWHEEL</text>
+
+      <!-- Node 1: Operators install -->
+      <rect x="210" y="50" width="180" height="50" rx="10" fill="#1c2128" stroke="#f7931a" stroke-width="2"/>
+      <text x="300" y="72" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="600" font-family="system-ui">Operators install bitnetd</text>
+      <text x="300" y="88" text-anchor="middle" fill="#8b949e" font-size="10" font-family="system-ui">Zero marginal cost</text>
+
+      <!-- Node 2: Network grows -->
+      <rect x="420" y="155" width="160" height="50" rx="10" fill="#1c2128" stroke="#f7931a" stroke-width="2"/>
+      <text x="500" y="177" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="600" font-family="system-ui">Network grows</text>
+      <text x="500" y="193" text-anchor="middle" fill="#8b949e" font-size="10" font-family="system-ui">More nodes, lower latency</text>
+
+      <!-- Node 3: Users arrive -->
+      <rect x="420" y="295" width="160" height="50" rx="10" fill="#1c2128" stroke="#f7931a" stroke-width="2"/>
+      <text x="500" y="317" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="600" font-family="system-ui">Users arrive</text>
+      <text x="500" y="333" text-anchor="middle" fill="#8b949e" font-size="10" font-family="system-ui">Privacy, censorship needs</text>
+
+      <!-- Node 4: Sats flow -->
+      <rect x="210" y="400" width="180" height="50" rx="10" fill="#1c2128" stroke="#3fb950" stroke-width="2"/>
+      <text x="300" y="422" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="600" font-family="system-ui">Sats flow to operators</text>
+      <text x="300" y="438" text-anchor="middle" fill="#3fb950" font-size="10" font-family="system-ui">Passive income ⚡</text>
+
+      <!-- Node 5: Word spreads -->
+      <rect x="20" y="295" width="160" height="50" rx="10" fill="#1c2128" stroke="#f7931a" stroke-width="2"/>
+      <text x="100" y="317" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="600" font-family="system-ui">Word spreads</text>
+      <text x="100" y="333" text-anchor="middle" fill="#8b949e" font-size="10" font-family="system-ui">Earnings screenshots</text>
+
+      <!-- Node 6: More operators -->
+      <rect x="20" y="155" width="160" height="50" rx="10" fill="#1c2128" stroke="#f7931a" stroke-width="2"/>
+      <text x="100" y="177" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="600" font-family="system-ui">More operators join</text>
+      <text x="100" y="193" text-anchor="middle" fill="#8b949e" font-size="10" font-family="system-ui">Incentive-driven</text>
+
+      <!-- Arrows (clockwise) -->
+      <path d="M 390 80 Q 450 100 430 155" stroke="#f7931a" stroke-width="2" fill="none" marker-end="url(#arrow-orange)"/>
+      <path d="M 500 205 Q 510 250 500 295" stroke="#f7931a" stroke-width="2" fill="none" marker-end="url(#arrow-orange)"/>
+      <path d="M 420 330 Q 360 370 350 400" stroke="#f7931a" stroke-width="2" fill="none" marker-end="url(#arrow-orange)"/>
+      <path d="M 210 430 Q 160 430 140 345" stroke="#f7931a" stroke-width="2" fill="none" marker-end="url(#arrow-orange)"/>
+      <path d="M 100 295 Q 90 250 100 205" stroke="#f7931a" stroke-width="2" fill="none" marker-end="url(#arrow-orange)"/>
+      <path d="M 170 165 Q 230 120 240 100" stroke="#f7931a" stroke-width="2" fill="none" marker-end="url(#arrow-orange)"/>
+    </svg>
+    <div class="diagram-label">Fig 4. The growth flywheel — same incentive loop as mining and routing</div>
+  </div>
+
+  <p><strong>No convincing needed.</strong> Node operators don't join because of ideology or altruism. They join because running <code>bitnetd</code> costs them nothing (spare bandwidth on hardware they already run) and earns them sats. The network gets better as a side effect of everyone pursuing their own economic interest.</p>
+
+  <p>This is Adam Smith's invisible hand applied to internet infrastructure.</p>
+</section>
+
+<hr class="separator">
+
+<!-- ==================== USE CASES ==================== -->
+<section id="use-cases">
+  <h2>first use cases</h2>
+
+  <h3>1. Censorship Circumvention</h3>
+  <p>People in Iran, China, and Russia currently pay for VPN subscriptions that get blocked within weeks. Bitnet is different: nodes appear faster than censors can block them, because anyone with a Lightning node can become a relay. There's no company to sanction, no central server to shut down, and the payment itself is uncensorable (Lightning). The first real users will be people who need uncensored internet and already have access to bitcoin.</p>
+
+  <h3>2. Privacy Browsing Without Subscriptions</h3>
+  <p>Pay 50 sats, browse for 10 minutes through an encrypted relay. No account, no email, no credit card linking your identity to your traffic. No monthly commitment. Use it once or use it daily — the network doesn't know or care.</p>
+
+  <h3>3. Machine-to-Machine API Proxying</h3>
+  <p>Bots and agents that need to make API calls without revealing their origin IP, rotate IPs for scraping, or access geo-restricted data. Pay per request, programmatically, with no human in the loop. This is where Lightning's programmable money becomes essential — machines paying machines for bandwidth.</p>
+
+  <h3>4. Decentralized File Transfer</h3>
+  <p>Route a file transfer through the relay network. End-to-end encrypted, paid per byte, no server in the middle. No Dropbox, no Google Drive, no WeTransfer. Just two wallets and a swarm of paid relays.</p>
+
+  <h3>5. Developer IP Rotation</h3>
+  <p>Developers who need rotating IPs for testing, monitoring, or data collection. Instead of buying proxy lists from sketchy providers, point your code at bitnet. Pay-per-request, clean IPs, no monthly contract.</p>
+
+  <div class="callout">
+    <p><strong>The wedge:</strong> Censorship circumvention is the initial market because it has inelastic demand — people in authoritarian countries don't stop needing uncensored internet because the price went up. And their current solutions (centralized VPNs) keep getting worse.</p>
+  </div>
+</section>
+
+<hr class="separator">
+
+<!-- ==================== LANDSCAPE ==================== -->
+<section id="landscape">
+  <h2>competitive landscape</h2>
+
+  <p>The concept of a decentralized bandwidth market has been attempted multiple times. Every attempt created a custom token instead of using bitcoin.</p>
+
+  <table>
+    <tr>
+      <th>Project</th>
+      <th>Chain</th>
+      <th>Token</th>
+      <th>Model</th>
+      <th>Bitcoin-Native</th>
+    </tr>
+    <tr>
+      <td><strong>Sentinel</strong></td>
+      <td>Cosmos</td>
+      <td>$DVPN / $P2P</td>
+      <td>dVPN bandwidth marketplace</td>
+      <td><span class="cross">✗</span></td>
+    </tr>
+    <tr>
+      <td><strong>Orchid</strong></td>
+      <td>Ethereum</td>
+      <td>OXT</td>
+      <td>Pay-per-packet VPN</td>
+      <td><span class="cross">✗</span></td>
+    </tr>
+    <tr>
+      <td><strong>Nym</strong></td>
+      <td>Custom</td>
+      <td>NYM</td>
+      <td>Mixnet privacy relay</td>
+      <td><span class="cross">✗</span></td>
+    </tr>
+    <tr>
+      <td><strong>Mysterium</strong></td>
+      <td>Ethereum</td>
+      <td>MYST</td>
+      <td>Decentralized VPN</td>
+      <td><span class="cross">✗</span></td>
+    </tr>
+    <tr>
+      <td><strong>Tor</strong></td>
+      <td>—</td>
+      <td>—</td>
+      <td>Volunteer relay network</td>
+      <td><span class="warn">—</span> no incentive</td>
+    </tr>
+    <tr>
+      <td><strong>LNVPN</strong></td>
+      <td>Lightning</td>
+      <td>BTC</td>
+      <td>Centralized VPN, LN payments</td>
+      <td><span class="warn">△</span> centralized</td>
+    </tr>
+    <tr>
+      <td><strong>Impervious</strong></td>
+      <td>Lightning</td>
+      <td>BTC</td>
+      <td>P2P browser / data transport</td>
+      <td><span class="warn">△</span> defunct</td>
+    </tr>
+    <tr>
+      <td><strong>Bitnet</strong></td>
+      <td>Lightning</td>
+      <td>BTC</td>
+      <td>Decentralized bandwidth relay</td>
+      <td><span class="check">✓</span></td>
+    </tr>
+  </table>
+
+  <h3>The Gap</h3>
+
+  <p>The market is validated — multiple well-funded teams have attempted to build decentralized bandwidth markets. But every one of them introduced a custom token, which:</p>
+
+  <ul>
+    <li>Adds friction (users must acquire a new token before they can use the network)</li>
+    <li>Fragments liquidity (relay fees denominated in an illiquid altcoin)</li>
+    <li>Introduces speculation (token price disconnects from service value)</li>
+    <li>Centralizes governance (token holders ≠ network participants)</li>
+  </ul>
+
+  <p>Tor proved the demand exists but showed that donation-based models produce slow, underfunded networks. Impervious proved Lightning can work as a data transport layer but tried to build too much at once.</p>
+
+  <div class="callout">
+    <p><strong>Bitnet's thesis:</strong> The right money already exists. You don't need a new token to pay for bandwidth. You need sats. Strip the altcoin, use Lightning, and leverage the 15,000 nodes that already form a global payment network.</p>
+  </div>
+</section>
+
+<hr class="separator">
+
+<!-- ==================== ARCHITECTURE ==================== -->
+<section id="architecture">
+  <h2>technical architecture</h2>
+
+  <div class="diagram-container">
+    <svg viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg">
+      <!-- Host machine boundary -->
+      <rect x="40" y="30" width="720" height="390" rx="16" fill="none" stroke="#30363d" stroke-width="2" stroke-dasharray="6,4"/>
+      <text x="60" y="55" fill="#8b949e" font-size="12" font-family="system-ui">Host Machine (Lightning Node Operator)</text>
+
+      <!-- lnd -->
+      <rect x="80" y="80" width="200" height="140" rx="12" fill="#1c2128" stroke="#58a6ff" stroke-width="2"/>
+      <text x="180" y="110" text-anchor="middle" fill="#58a6ff" font-size="15" font-weight="700" font-family="system-ui">lnd / cln</text>
+      <rect x="100" y="125" width="160" height="25" rx="4" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+      <text x="180" y="142" text-anchor="middle" fill="#8b949e" font-size="10" font-family="system-ui">Payment Routing</text>
+      <rect x="100" y="158" width="160" height="25" rx="4" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+      <text x="180" y="175" text-anchor="middle" fill="#8b949e" font-size="10" font-family="system-ui">Invoice Generation</text>
+      <rect x="100" y="191" width="160" height="25" rx="4" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+      <text x="180" y="208" text-anchor="middle" fill="#8b949e" font-size="10" font-family="system-ui">Channel Management</text>
+
+      <!-- bitnetd -->
+      <rect x="340" y="80" width="200" height="200" rx="12" fill="#1c2128" stroke="#f7931a" stroke-width="2"/>
+      <text x="440" y="110" text-anchor="middle" fill="#f7931a" font-size="15" font-weight="700" font-family="system-ui">bitnetd</text>
+      <rect x="360" y="125" width="160" height="25" rx="4" fill="rgba(247,147,26,0.15)" stroke="#f7931a" stroke-width="1"/>
+      <text x="440" y="142" text-anchor="middle" fill="#f7931a" font-size="10" font-family="system-ui">L402 Gate</text>
+      <rect x="360" y="158" width="160" height="25" rx="4" fill="rgba(247,147,26,0.15)" stroke="#f7931a" stroke-width="1"/>
+      <text x="440" y="175" text-anchor="middle" fill="#f7931a" font-size="10" font-family="system-ui">SOCKS5 / HTTP Proxy</text>
+      <rect x="360" y="191" width="160" height="25" rx="4" fill="rgba(247,147,26,0.15)" stroke="#f7931a" stroke-width="1"/>
+      <text x="440" y="208" text-anchor="middle" fill="#f7931a" font-size="10" font-family="system-ui">Traffic Relay Engine</text>
+      <rect x="360" y="224" width="160" height="25" rx="4" fill="rgba(247,147,26,0.15)" stroke="#f7931a" stroke-width="1"/>
+      <text x="440" y="241" text-anchor="middle" fill="#f7931a" font-size="10" font-family="system-ui">Node Discovery / Gossip</text>
+      <rect x="360" y="257" width="160" height="15" rx="4" fill="none" stroke="#30363d" stroke-width="1"/>
+      <text x="440" y="268" text-anchor="middle" fill="#8b949e" font-size="9" font-family="system-ui">Metrics / Stats API</text>
+
+      <!-- gRPC connection -->
+      <line x1="280" y1="150" x2="340" y2="150" stroke="#58a6ff" stroke-width="2"/>
+      <text x="310" y="142" text-anchor="middle" fill="#58a6ff" font-size="9" font-family="system-ui">gRPC</text>
+
+      <!-- External: Clients -->
+      <rect x="600" y="80" width="130" height="50" rx="10" fill="#1c2128" stroke="#3fb950" stroke-width="2"/>
+      <text x="665" y="102" text-anchor="middle" fill="#3fb950" font-size="12" font-weight="600" font-family="system-ui">bitnet-cli</text>
+      <text x="665" y="118" text-anchor="middle" fill="#8b949e" font-size="10" font-family="system-ui">Client traffic</text>
+
+      <rect x="600" y="150" width="130" height="50" rx="10" fill="#1c2128" stroke="#3fb950" stroke-width="2"/>
+      <text x="665" y="172" text-anchor="middle" fill="#3fb950" font-size="12" font-weight="600" font-family="system-ui">Browser Ext</text>
+      <text x="665" y="188" text-anchor="middle" fill="#8b949e" font-size="10" font-family="system-ui">One-click relay</text>
+
+      <rect x="600" y="220" width="130" height="50" rx="10" fill="#1c2128" stroke="#3fb950" stroke-width="2"/>
+      <text x="665" y="242" text-anchor="middle" fill="#3fb950" font-size="12" font-weight="600" font-family="system-ui">SDK / Library</text>
+      <text x="665" y="258" text-anchor="middle" fill="#8b949e" font-size="10" font-family="system-ui">M2M integration</text>
+
+      <!-- Client arrows -->
+      <line x1="600" y1="105" x2="540" y2="145" stroke="#3fb950" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+      <line x1="600" y1="175" x2="540" y2="175" stroke="#3fb950" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+      <line x1="600" y1="245" x2="540" y2="210" stroke="#3fb950" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+
+      <!-- Internet -->
+      <rect x="340" y="330" width="200" height="50" rx="10" fill="#1c2128" stroke="#8b949e" stroke-width="2"/>
+      <text x="440" y="360" text-anchor="middle" fill="#8b949e" font-size="13" font-weight="600" font-family="system-ui">🌐 Public Internet</text>
+
+      <line x1="440" y1="280" x2="440" y2="330" stroke="#8b949e" stroke-width="2" marker-end="url(#arrow-gray)"/>
+      <text x="460" y="310" fill="#8b949e" font-size="9" font-family="system-ui">Relay out</text>
+
+      <!-- Other bitnet nodes -->
+      <rect x="80" y="300" width="180" height="50" rx="10" fill="#1c2128" stroke="#f7931a" stroke-width="1.5"/>
+      <text x="170" y="322" text-anchor="middle" fill="#f7931a" font-size="12" font-weight="600" font-family="system-ui">Other Bitnet Nodes</text>
+      <text x="170" y="340" text-anchor="middle" fill="#8b949e" font-size="10" font-family="system-ui">Multi-hop relay peers</text>
+
+      <line x1="340" y1="260" x2="260" y2="300" stroke="#f7931a" stroke-width="1.5" marker-end="url(#arrow-orange)"/>
+    </svg>
+    <div class="diagram-label">Fig 5. System architecture — bitnetd connects to the local Lightning node and serves relay clients</div>
+  </div>
+
+  <h3>Components</h3>
+
+  <p><strong><code>bitnetd</code></strong> — The relay daemon. Written in Go for ecosystem compatibility with lnd. Connects to the local Lightning node via gRPC for invoice generation and payment verification. Runs an L402-gated proxy server (SOCKS5 and HTTP). Participates in node discovery via Lightning gossip extensions. Lightweight — minimal CPU and memory footprint on top of an existing Lightning node.</p>
+
+  <p><strong><code>bitnet-cli</code></strong> — The client tool. Routes local traffic through one or more bitnet nodes. Handles L402 negotiation, automatic invoice payment, and path selection. Can be used as a system-wide proxy or per-application.</p>
+
+  <p><strong>Browser extension</strong> (future) — One-click "connect to bitnet" for non-technical users. Automatically finds the cheapest/fastest relay, pays invoices from an embedded Lightning wallet, and routes browser traffic through the network.</p>
+
+  <p><strong>SDK / Library</strong> (future) — For developers integrating bitnet relay into their applications. Pay-per-request API proxying, bot traffic routing, programmatic bandwidth purchase.</p>
+
+  <h3>Technology Choices</h3>
+
+  <table>
+    <tr><th>Component</th><th>Choice</th><th>Rationale</th></tr>
+    <tr><td>Language</td><td>Go</td><td>Same as lnd; shared libraries, easy gRPC integration</td></tr>
+    <tr><td>LN interface</td><td>lnd gRPC (primary), cln via grpc-plugin</td><td>Covers ~90% of Lightning nodes</td></tr>
+    <tr><td>Auth protocol</td><td>L402 (Aperture-compatible)</td><td>Battle-tested by Lightning Labs in production</td></tr>
+    <tr><td>Proxy protocols</td><td>SOCKS5, HTTP CONNECT</td><td>Universal client support, no custom protocol needed</td></tr>
+    <tr><td>Discovery</td><td>Lightning gossip + optional DHT</td><td>Leverages existing peer connections</td></tr>
+    <tr><td>Privacy layer</td><td>Sphinx onion routing</td><td>Already implemented in Lightning; proven at scale</td></tr>
+  </table>
+</section>
+
+<hr class="separator">
+
+<!-- ==================== LEGAL ==================== -->
+<section id="legal">
+  <h2>legal considerations</h2>
+
+  <p>The primary legal question is the same one Tor exit node operators have faced for 20 years: <strong>if you relay someone else's traffic, and that traffic is illegal, are you liable?</strong></p>
+
+  <h3>Existing Protections</h3>
+
+  <ul>
+    <li><strong>DMCA §512 / Safe Harbor</strong> — Intermediaries that transmit data without modification have legal protection. ISPs relay illegal traffic daily and aren't liable. Bitnet nodes function identically to an ISP or Tor relay.</li>
+    <li><strong>Section 230</strong> — Protects intermediaries from liability for content passing through their systems.</li>
+    <li><strong>Common Carrier Doctrine</strong> — If you relay everything indiscriminately (no content selection), you're a conduit, not a publisher.</li>
+  </ul>
+
+  <h3>Risk Mitigation</h3>
+
+  <ul>
+    <li><strong>Relay-only by default.</strong> Bitnet nodes do not act as exit nodes unless explicitly opted in. Default behavior is middle-relay only: pass encrypted traffic to the next node. Only operators who choose to accept the additional risk (and earn higher fees) become exit nodes.</li>
+    <li><strong>Commercial conduit framing.</strong> Lightning payments make bitnet nodes commercial relay services, closer to ISPs than volunteer projects. ISPs have stronger legal protections than volunteer anonymity networks.</li>
+    <li><strong>No content awareness.</strong> Nodes relay encrypted blobs. They have no ability to inspect, filter, or modify content — strengthening the common carrier argument.</li>
+    <li><strong>Open protocol, not a service.</strong> Bitnet publishes software, not a service. The protocol is open. Each node operator runs their own independent instance. This mirrors BitTorrent's legal position.</li>
+  </ul>
+
+  <h3>Jurisdictional Notes</h3>
+
+  <p>The US offers the strongest protections for relay operators. Some jurisdictions (notably Germany) have been historically hostile to Tor exit operators. Bitnet documentation should include clear guidance on jurisdictional risk and recommend relay-only mode in higher-risk jurisdictions.</p>
+
+  <p>Establishing a legal defense fund as the network grows would mirror the EFF's support for Tor operators and provide additional protection for participants.</p>
+</section>
+
+<hr class="separator">
+
+<!-- ==================== NETWORK VIZ ==================== -->
+<section id="visualization">
+  <h2>network visualization</h2>
+
+  <p>A public dashboard showing the live state of the bitnet network. Every node that opts in publishes its approximate location and relay statistics to a lightweight tracker.</p>
+
+  <div class="diagram-container">
+    <svg viewBox="0 0 800 350" xmlns="http://www.w3.org/2000/svg">
+      <!-- World map simplified outline -->
+      <rect x="0" y="0" width="800" height="350" rx="12" fill="#0d1117"/>
+
+      <!-- Grid lines -->
+      <line x1="0" y1="175" x2="800" y2="175" stroke="#1c2128" stroke-width="1"/>
+      <line x1="400" y1="0" x2="400" y2="350" stroke="#1c2128" stroke-width="1"/>
+
+      <!-- Continent outlines (simplified) -->
+      <!-- North America -->
+      <ellipse cx="200" cy="120" rx="100" ry="60" fill="none" stroke="#30363d" stroke-width="1"/>
+      <!-- Europe -->
+      <ellipse cx="430" cy="100" rx="60" ry="40" fill="none" stroke="#30363d" stroke-width="1"/>
+      <!-- Asia -->
+      <ellipse cx="600" cy="120" rx="100" ry="60" fill="none" stroke="#30363d" stroke-width="1"/>
+      <!-- South America -->
+      <ellipse cx="250" cy="240" rx="50" ry="60" fill="none" stroke="#30363d" stroke-width="1"/>
+      <!-- Africa -->
+      <ellipse cx="430" cy="210" rx="50" ry="60" fill="none" stroke="#30363d" stroke-width="1"/>
+
+      <!-- Nodes (dots with glow) -->
+      <!-- US nodes -->
+      <circle cx="150" cy="110" r="4" fill="#f7931a" opacity="0.9"/>
+      <circle cx="150" cy="110" r="10" fill="#f7931a" opacity="0.15"/>
+      <circle cx="200" cy="130" r="5" fill="#f7931a" opacity="0.9"/>
+      <circle cx="200" cy="130" r="12" fill="#f7931a" opacity="0.15"/>
+      <circle cx="230" cy="105" r="3" fill="#f7931a" opacity="0.9"/>
+      <circle cx="175" cy="95" r="3" fill="#f7931a" opacity="0.9"/>
+      <circle cx="250" cy="120" r="4" fill="#f7931a" opacity="0.9"/>
+
+      <!-- Europe nodes -->
+      <circle cx="410" cy="90" r="4" fill="#f7931a" opacity="0.9"/>
+      <circle cx="410" cy="90" r="10" fill="#f7931a" opacity="0.15"/>
+      <circle cx="440" cy="105" r="5" fill="#f7931a" opacity="0.9"/>
+      <circle cx="440" cy="105" r="12" fill="#f7931a" opacity="0.15"/>
+      <circle cx="460" cy="85" r="3" fill="#f7931a" opacity="0.9"/>
+      <circle cx="420" cy="115" r="3" fill="#f7931a" opacity="0.9"/>
+
+      <!-- Asia nodes -->
+      <circle cx="580" cy="100" r="3" fill="#f7931a" opacity="0.9"/>
+      <circle cx="630" cy="130" r="4" fill="#f7931a" opacity="0.9"/>
+      <circle cx="630" cy="130" r="10" fill="#f7931a" opacity="0.15"/>
+      <circle cx="670" cy="110" r="3" fill="#f7931a" opacity="0.9"/>
+      <circle cx="550" cy="140" r="3" fill="#f7931a" opacity="0.9"/>
+
+      <!-- South America -->
+      <circle cx="240" cy="230" r="3" fill="#f7931a" opacity="0.9"/>
+      <circle cx="260" cy="250" r="3" fill="#f7931a" opacity="0.9"/>
+
+      <!-- Africa -->
+      <circle cx="435" cy="200" r="3" fill="#f7931a" opacity="0.9"/>
+
+      <!-- Connection lines (active relay paths) -->
+      <line x1="200" y1="130" x2="410" y2="90" stroke="#f7931a" stroke-width="1" opacity="0.3"/>
+      <line x1="440" y1="105" x2="630" y2="130" stroke="#f7931a" stroke-width="1" opacity="0.3"/>
+      <line x1="200" y1="130" x2="250" y2="120" stroke="#f7931a" stroke-width="1" opacity="0.3"/>
+      <line x1="410" y1="90" x2="440" y2="105" stroke="#f7931a" stroke-width="1" opacity="0.3"/>
+      <line x1="150" y1="110" x2="200" y2="130" stroke="#f7931a" stroke-width="1" opacity="0.3"/>
+      <line x1="630" y1="130" x2="670" y2="110" stroke="#f7931a" stroke-width="1" opacity="0.3"/>
+      <line x1="240" y1="230" x2="200" y2="130" stroke="#f7931a" stroke-width="1" opacity="0.2"/>
+      <line x1="435" y1="200" x2="440" y2="105" stroke="#f7931a" stroke-width="1" opacity="0.2"/>
+
+      <!-- Stats overlay -->
+      <rect x="20" y="290" width="180" height="45" rx="8" fill="rgba(22,27,34,0.9)" stroke="#30363d" stroke-width="1"/>
+      <text x="35" y="310" fill="#8b949e" font-size="10" font-family="system-ui">NODES</text>
+      <text x="35" y="326" fill="#f7931a" font-size="14" font-weight="700" font-family="system-ui">1,247</text>
+      <text x="95" y="310" fill="#8b949e" font-size="10" font-family="system-ui">RELAYED</text>
+      <text x="95" y="326" fill="#f7931a" font-size="14" font-weight="700" font-family="system-ui">4.2 TB</text>
+      <text x="155" y="310" fill="#8b949e" font-size="10" font-family="system-ui">EARNED</text>
+      <text x="155" y="326" fill="#3fb950" font-size="14" font-weight="700" font-family="system-ui">2.1M ⚡</text>
+    </svg>
+    <div class="diagram-label">Fig 6. Network visualization concept — live map of active relay nodes and traffic paths</div>
+  </div>
+
+  <p>The visualization serves a dual purpose: network monitoring for operators and a compelling growth marketing tool. Watching your dot appear on a global relay map after installing <code>bitnetd</code> is a powerful onboarding moment.</p>
+</section>
+
+<hr class="separator">
+
+<!-- ==================== ROADMAP ==================== -->
+<section id="roadmap">
+  <h2>roadmap</h2>
+
+  <div class="roadmap-item">
+    <span class="roadmap-phase">Phase 1</span>
+    <div>
+      <h3 style="margin-top:0">Single-Node Proxy</h3>
+      <p>One node running <code>bitnetd</code> alongside a mainnet Lightning node. L402-gated HTTP proxy. Clients pay per request or per time window. Proof of concept — demonstrate the core payment-for-relay loop works end to end.</p>
+    </div>
+  </div>
+
+  <div class="roadmap-item">
+    <span class="roadmap-phase">Phase 2</span>
+    <div>
+      <h3 style="margin-top:0">Multi-Node Relay</h3>
+      <p>Node discovery via gossip. Multi-hop routing with onion encryption. Client path selection. Fee splitting across relay nodes. SOCKS5 support. This is where bitnet becomes a network rather than a single proxy.</p>
+    </div>
+  </div>
+
+  <div class="roadmap-item">
+    <span class="roadmap-phase">Phase 3</span>
+    <div>
+      <h3 style="margin-top:0">Client Ecosystem</h3>
+      <p>Browser extension for one-click relay. Mobile client. SDK/library for developer integration. Focus on UX — make it trivial for non-technical users to route traffic through bitnet.</p>
+    </div>
+  </div>
+
+  <div class="roadmap-item">
+    <span class="roadmap-phase">Phase 4</span>
+    <div>
+      <h3 style="margin-top:0">Network Dashboard</h3>
+      <p>Public visualization of the relay network. Live node map, traffic stats, earnings leaderboard. Marketing flywheel — operators share their node's position and earnings, attracting more participants.</p>
+    </div>
+  </div>
+
+  <div class="roadmap-item">
+    <span class="roadmap-phase">Phase 5</span>
+    <div>
+      <h3 style="margin-top:0">Exit Nodes + Ecosystem</h3>
+      <p>Opt-in exit node support with clear legal documentation. Legal defense fund. QoS tiers (pay more for low-latency or high-bandwidth relay). TCP/UDP relay beyond HTTP. Foundation for higher-layer services (storage, compute).</p>
+    </div>
+  </div>
+</section>
+
+<hr class="separator">
+
+<!-- ==================== FOOTER ==================== -->
+<section>
+  <h2>the pattern</h2>
+
+  <p>Bitcoin proved that you can build a global network purely on incentives. No company needed to organize miners. No foundation needed to fund them. The protocol defined the reward, and rational actors did the rest.</p>
+
+  <p>Lightning proved the same pattern works for a second market — routing payments. Node operators provide liquidity because it's profitable, and the network grows as a consequence.</p>
+
+  <p>Bitnet is the hypothesis that this pattern works for a third market: bandwidth. The most fundamental internet service, settled in the most neutral money, over the fastest payment network in existence.</p>
+
+  <p>No token. No foundation. No fundraise. Just software that makes it profitable to relay traffic for strangers.</p>
+
+  <p style="color: var(--orange); font-size: 1.2rem; font-weight: 600; margin-top: 2rem;">The network is the incentive. The incentive is the network.</p>
+</section>
+
+<footer>
+  <p>⚡ bitnet — a proposal for decentralized bandwidth on lightning</p>
+</footer>
+
+</body>
+</html>
