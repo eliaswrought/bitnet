@@ -291,6 +291,7 @@
   <a href="#protocol">Protocol</a>
   <a href="#infrastructure">Infrastructure</a>
   <a href="#flywheel">Growth</a>
+  <a href="#bootstrapping">Bootstrapping</a>
   <a href="#use-cases">Use Cases</a>
   <a href="#landscape">Landscape</a>
   <a href="#architecture">Architecture</a>
@@ -636,6 +637,66 @@ Authorization: L402 AGIAJEem...:preimage=79852a07...</pre>
   <p><strong>No convincing needed.</strong> Node operators don't join because of ideology or altruism. They join because running <code>bitnetd</code> costs them nothing (spare bandwidth on hardware they already run) and earns them sats. The network gets better as a side effect of everyone pursuing their own economic interest.</p>
 
   <p>This is Adam Smith's invisible hand applied to internet infrastructure.</p>
+</section>
+
+<hr class="separator">
+
+<!-- ==================== BOOTSTRAPPING ==================== -->
+<section id="bootstrapping">
+  <h2>bootstrapping: the library, not the app</h2>
+
+  <p>The hardest problem in any decentralized network is the cold start. A relay network with one node is useless. Ten nodes is a toy. You need critical mass before anyone cares, and "install this daemon and earn sats" isn't enough if there's no traffic to earn from.</p>
+
+  <div class="callout">
+    <p><strong>The insight:</strong> Bitnet shouldn't be a standalone product on day one. It should be a <em>library</em> — a Go module, a Rust crate, a Python package — that any lightning-adjacent project can drop into their existing codebase. HTTP didn't take off because someone built "the HTTP app." It took off because it was a protocol any application could speak.</p>
+  </div>
+
+  <h3>Embed, Don't Install</h3>
+
+  <p>The core relay protocol ships as a package with a minimal API:</p>
+
+  <pre>
+// Become a relay node (3 lines)
+r := bitnet.NewRelay(bitnet.WithLND(lndConn))
+r.SetPrice(100) // sats per MB
+r.Start()
+
+// Use the relay network (3 lines)
+client := bitnet.NewClient(wallet)
+resp, err := client.Fetch("https://blocked-site.com")</pre>
+
+  <p>Any Go application adds a dependency and three lines of code. They're either providing bandwidth or consuming it. The network bootstraps because it's not asking anyone to install a new thing — it's asking them to add a dependency to their existing thing.</p>
+
+  <h3>Day-One Integration Targets</h3>
+
+  <p>These projects have existing user bases, existing lightning infrastructure, and immediate reasons to embed paid relay:</p>
+
+  <table>
+    <tr><th>Project</th><th>What They Are</th><th>Why They'd Embed Bitnet</th></tr>
+    <tr><td><strong>Umbrel / Start9 / MyNode</strong></td><td>Home server OS for lightning nodes</td><td>One-click "earn sats from bandwidth" app. Tens of thousands of nodes, instant distribution.</td></tr>
+    <tr><td><strong>LNbits</strong></td><td>Lightning app plugin ecosystem</td><td>Bitnet plugin = every LNbits instance becomes a relay node. Largest lightning dev ecosystem.</td></tr>
+    <tr><td><strong>ThunderHub / RTL</strong></td><td>Lightning node management</td><td>"Bandwidth relay" toggle in the UI. Instant access to active node operators.</td></tr>
+    <tr><td><strong>Nostr relay operators</strong></td><td>Already run relay infra</td><td>Second revenue stream: relay general traffic, not just nostr events.</td></tr>
+    <tr><td><strong>Sphinx Chat</strong></td><td>Lightning-paid messaging</td><td>General data relay underneath their messaging layer.</td></tr>
+    <tr><td><strong>Any app needing censorship resistance</strong></td><td>Various</td><td>Don't build your own relay network — <code>import bitnet</code> and piggyback on everyone else's nodes.</td></tr>
+  </table>
+
+  <h3>The BitTorrent Parallel</h3>
+
+  <p>BitTorrent didn't bootstrap by asking people to "run a BitTorrent daemon." It shipped a protocol (embeddable) and a client (µTorrent) that made it accessible. The protocol spread because it was a library first and an app second.</p>
+
+  <p>Bitnet follows the same path:</p>
+  <ul>
+    <li><strong>The library</strong> (for developers) — this is how you get critical mass. Dozens of existing projects embed it.</li>
+    <li><strong>The CLI client</strong> (for power users) — route traffic through the network from the command line.</li>
+    <li><strong>The browser extension</strong> (for everyone else) — one-click relay, later.</li>
+  </ul>
+
+  <p>The library is the product. Everything else is a client of the library.</p>
+
+  <div class="callout">
+    <p><strong>Supply and demand arrive together</strong> because the same library serves both sides. An app that imports bitnet to <em>use</em> relay also has the option to <em>provide</em> relay. The more apps that integrate, the more nodes exist on both sides of the market — automatically.</p>
+  </div>
 </section>
 
 <hr class="separator">
